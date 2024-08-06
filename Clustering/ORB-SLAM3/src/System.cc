@@ -1383,6 +1383,11 @@ float System::GetImageScale()
     return mpTracker->GetImageScale();
 }
 
+void System::SetTrackTimeStamp(double CFTime,double LFTime = -1.0)
+{
+    mpTracker->SetTrackTimeStamp(CFTime,LFTime);
+}
+
 #ifdef REGISTER_TIMES
 void System::InsertRectTime(double& time)
 {

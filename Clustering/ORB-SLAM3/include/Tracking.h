@@ -107,6 +107,7 @@ public:
     void SaveSubTrajectory(string strNameFile_frames, string strNameFile_kf, Map* pMap);
 
     float GetImageScale();
+    void SetTrackTimeStamp(double CFTime,double LFTime);
 
 #ifdef REGISTER_LOOP
     void RequestStop();
@@ -133,6 +134,9 @@ public:
 
     // Input sensor
     int mSensor;
+
+    double mTrackCurrentFTimestamp;
+    double mTrackLastFTimestamp;
 
     // Current Frame
     Frame mCurrentFrame;
