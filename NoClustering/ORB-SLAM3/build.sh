@@ -4,7 +4,7 @@ cd Thirdparty/DBoW2
 mkdir build
 cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
-make -j
+make -j`nproc`
 
 cd ../../g2o
 
@@ -13,7 +13,7 @@ echo "Configuring and building Thirdparty/g2o ..."
 mkdir build
 cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
-make -j
+make -j`nproc`
 
 cd ../../Sophus
 
@@ -22,19 +22,19 @@ echo "Configuring and building Thirdparty/Sophus ..."
 mkdir build
 cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
-make -j
+make -j`nproc`
 
 cd ../../../
 
-echo "Uncompress vocabulary ..."
+# echo "Uncompress vocabulary ..."
 
-cd Vocabulary
-tar -xf ../../../Vocabulary/ORBvoc.txt.tar.gz
-cd ..
+# cd Vocabulary
+# tar -xf ../../../Vocabulary/ORBvoc.txt.tar.gz
+# cd ..
 
 echo "Configuring and building ORB_SLAM3 ..."
 
 mkdir build
 cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release
+cmake .. -DCMAKE_BUILD_TYPE=Debug
 make -j4

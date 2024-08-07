@@ -95,6 +95,9 @@ int main(int argc, char **argv)
     double t_resize = 0.f;
     double t_track = 0.f;
 
+    double CurrentFrameTimeStamp = -1.0;
+    double LastFrameTimeStamp = -1.0;
+
     int proccIm = 0;
     for (seq = 0; seq<num_seq; seq++)
     {
@@ -153,6 +156,13 @@ int main(int argc, char **argv)
 
             // Pass the image to the SLAM system
             SLAM.TrackMonocular(im,tframe); // TODO change to monocular_inertial
+            LastFrameTimeStamp = CurrentFrameTimeStamp;
+            std::chrono::steady_clock::time_point t_Start_Track_FPS = std::chrono::steady_clock::now();
+            auto start = std::chrono::time_point_cast<std::chrono::milliseconds>(t_Start_Track_FPS);
+            CurrentFrameTimeStamp = start.time_since_epoch().count() / 1000.0;
+            if (LastFrameTimeStamp > 0){
+                SLAM.SetTrackTimeStamp(CurrentFrameTimeStamp,LastFrameTimeStamp);
+            }
 
 #ifdef COMPILEDWITHC11
             std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
