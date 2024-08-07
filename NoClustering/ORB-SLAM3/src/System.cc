@@ -551,6 +551,9 @@ void System::Shutdown()
         SaveAtlas(FileType::BINARY_FILE);
     }
 
+    if(!mTrackFrameTimestamp.empty()){
+        SaveTimestamp();
+    }
     /*if(mpViewer)
         pangolin::BindToContext("ORB-SLAM2: Map Viewer");*/
 
@@ -1383,6 +1386,11 @@ float System::GetImageScale()
     return mpTracker->GetImageScale();
 }
 
+void System::SetTrackTimeStamp(double CFTime,double LFTime = -1.0)
+{
+    mpTracker->SetTrackTimeStamp(CFTime,LFTime);
+}
+
 #ifdef REGISTER_TIMES
 void System::InsertRectTime(double& time)
 {
@@ -1399,6 +1407,10 @@ void System::InsertTrackTime(double& time)
     mpTracker->vdTrackTotal_ms.push_back(time);
 }
 #endif
+
+void System::SaveTimestamp(){
+
+}
 
 void System::SaveAtlas(int type){
     if(!mStrSaveAtlasToFile.empty())

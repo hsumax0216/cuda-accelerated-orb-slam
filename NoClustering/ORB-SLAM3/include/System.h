@@ -186,6 +186,8 @@ public:
 
     float GetImageScale();
 
+    void SetTrackTimeStamp(double CFTime,double LFTime);
+
 #ifdef REGISTER_TIMES
     void InsertRectTime(double& time);
     void InsertResizeTime(double& time);
@@ -193,6 +195,8 @@ public:
 #endif
 
 private:
+
+    void SaveTimestamp();
 
     void SaveAtlas(int type);
     bool LoadAtlas(int type);
@@ -254,6 +258,8 @@ private:
     std::vector<MapPoint*> mTrackedMapPoints;
     std::vector<cv::KeyPoint> mTrackedKeyPointsUn;
     std::mutex mMutexState;
+
+    std::vector<double> mTrackFrameTimestamp;
 
     //
     string mStrLoadAtlasFromFile;
