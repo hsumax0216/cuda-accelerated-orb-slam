@@ -33,6 +33,10 @@
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
 
+#include <fstream>
+#include <sstream>
+#include <iomanip>
+
 namespace ORB_SLAM3
 {
 
@@ -95,6 +99,13 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
         if(!node.empty() && node.isString())
         {
             mStrSaveAtlasToFile = (string)node;
+        }
+
+        node = fsSettings["System.SaveTimestampToCSV"];
+        if(!node.empty() && node.isString())
+        {
+            mStrSaveTimestampCSVFilePath = (string)node;
+            mStrCurrentTime = GetCurrentTime();
         }
     }
 
@@ -185,11 +196,13 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     mpFrameDrawer = new FrameDrawer(mpAtlas);
     mpMapDrawer = new MapDrawer(mpAtlas, strSettingsFile, settings_);
 
+    mpPointCloudMapping = new PointCloudMapping( 0.1 );
+
     //Initialize the Tracking thread
     //(it will live in the main thread of execution, the one that called this constructor)
     cout << "Seq. Name: " << strSequence << endl;
     mpTracker = new Tracking(this, mpVocabulary, mpFrameDrawer, mpMapDrawer,
-                             mpAtlas, mpKeyFrameDatabase, strSettingsFile, mSensor, settings_, strSequence);
+                             mpAtlas, mpPointCloudMapping, mpKeyFrameDatabase, strSettingsFile, mSensor, settings_, strSequence);
 
     //Initialize the Local Mapping thread and launch
     mpLocalMapper = new LocalMapping(this, mpAtlas, mSensor==MONOCULAR || mSensor==IMU_MONOCULAR,
@@ -1388,6 +1401,7 @@ float System::GetImageScale()
 
 void System::SetTrackTimeStamp(double CFTime,double LFTime = -1.0)
 {
+    mTrackFrameTimestamp.push_back(CFTime);
     mpTracker->SetTrackTimeStamp(CFTime,LFTime);
 }
 
@@ -1409,7 +1423,40 @@ void System::InsertTrackTime(double& time)
 #endif
 
 void System::SaveTimestamp(){
+    string pathSaveFileName = "";
+    pathSaveFileName = pathSaveFileName.append(mStrSaveTimestampCSVFilePath);
+    pathSaveFileName = pathSaveFileName.append("_");
+    pathSaveFileName = pathSaveFileName.append(mStrCurrentTime);
+    pathSaveFileName = pathSaveFileName.append(".csv");
+    std::fstream file;
+    
+    file.open(pathSaveFileName,std::fstream::out);
 
+    cout << "Starting to write the save Timestamp CSV file " << endl;
+    file << "Timestamp_per_frame," << std::endl;
+    for (int i=0;i<mTrackFrameTimestamp.size();i++)
+    {
+        file << mTrackFrameTimestamp[i]<<","<< std::endl;
+    }
+    file.close();    
+    cout << "End to write the save Timestamp CSV file " << endl;
+}
+
+string System::GetCurrentTime(){
+    // 取得現在的時間點
+    auto now = std::chrono::system_clock::now();
+    
+    // 將時間轉換為 time_t 型別
+    std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
+    
+    // 取得當前時間的 tm 結構
+    std::tm tm = *std::localtime(&currentTime);
+    
+    // 使用 stringstream 來格式化時間
+    std::stringstream ss;
+    ss << std::put_time(&tm, "%Y%m%d-%H%M");
+    
+    return ss.str();
 }
 
 void System::SaveAtlas(int type){

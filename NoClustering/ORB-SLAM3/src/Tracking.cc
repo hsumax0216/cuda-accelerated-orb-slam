@@ -41,9 +41,9 @@ namespace ORB_SLAM3
 {
 
 
-Tracking::Tracking(System *pSys, ORBVocabulary* pVoc, FrameDrawer *pFrameDrawer, MapDrawer *pMapDrawer, Atlas *pAtlas, KeyFrameDatabase* pKFDB, const string &strSettingPath, const int sensor, Settings* settings, const string &_nameSeq):
+Tracking::Tracking(System *pSys, ORBVocabulary* pVoc, FrameDrawer *pFrameDrawer, MapDrawer *pMapDrawer, Atlas *pAtlas, PointCloudMapping* pPointCloud, KeyFrameDatabase* pKFDB, const string &strSettingPath, const int sensor, Settings* settings, const string &_nameSeq):
     mState(NO_IMAGES_YET), mSensor(sensor), mTrackedFr(0), mbStep(false),
-    mbOnlyTracking(false), mbMapUpdated(false), mbVO(false), mpORBVocabulary(pVoc), mpKeyFrameDB(pKFDB),
+    mbOnlyTracking(false), mbMapUpdated(false), mbVO(false), mpORBVocabulary(pVoc), mpKeyFrameDB(pKFDB), mpPointCloudMapping(pPointCloud),
     mbReadyToInitializate(false), mpSystem(pSys), mpViewer(NULL), bStepByStep(false),
     mpFrameDrawer(pFrameDrawer), mpMapDrawer(pMapDrawer), mpAtlas(pAtlas), mnLastRelocFrameId(0), time_recently_lost(5.0),
     mnInitialFrameId(0), mbCreatedMap(false), mnFirstFrameId(0), mpCamera2(nullptr), mpLastKeyFrame(static_cast<KeyFrame*>(NULL)), mTrackCurrentFTimestamp(-1.0), mTrackLastFTimestamp(-1.0)
@@ -1521,6 +1521,7 @@ Sophus::SE3f Tracking::GrabImageRGBD(const cv::Mat &imRGB,const cv::Mat &imD, co
 {
     mImGray = imRGB;
     cv::Mat imDepth = imD;
+    imRGB.copyTo(mImRGB);
 
     if(mImGray.channels()==3)
     {
@@ -1539,16 +1540,13 @@ Sophus::SE3f Tracking::GrabImageRGBD(const cv::Mat &imRGB,const cv::Mat &imD, co
 
     if((fabs(mDepthMapFactor-1.0f)>1e-5) || imDepth.type()!=CV_32F)
         imDepth.convertTo(imDepth,CV_32F,mDepthMapFactor);
+    
+    imDepth.copyTo(mImD);
 
     if (mSensor == System::RGBD)
         mCurrentFrame = Frame(mImGray,imDepth,timestamp,mpORBextractorLeft,mpORBVocabulary,mK,mDistCoef,mbf,mThDepth,mpCamera);
     else if(mSensor == System::IMU_RGBD)
         mCurrentFrame = Frame(mImGray,imDepth,timestamp,mpORBextractorLeft,mpORBVocabulary,mK,mDistCoef,mbf,mThDepth,mpCamera,&mLastFrame,*mpImuCalib);
-
-
-
-
-
 
     mCurrentFrame.mNameFile = filename;
     mCurrentFrame.mnDataset = mnNumDataset;
@@ -3338,6 +3336,24 @@ void Tracking::CreateNewKeyFrame()
 
     mnLastKeyFrameId = mCurrentFrame.mnId;
     mpLastKeyFrame = pKF;
+
+    if(mSensor==System::RGBD || mSensor==System::IMU_RGBD){
+        //mpPointCloudMapping->insertKeyFrame(pKF, mImRGB, mImD, mpAtlas->GetAllKeyFrames());
+        mpPointCloudMapping->insertKeyFrame(pKF, mImRGB, mImD, mpAtlas->GetAllKeyFrames(), mK, mDistCoef);
+    }
+    // else if((mSensor==System::MONOCULAR || mSensor==System::IMU_MONOCULAR) && !mImGray.empty()){
+    //     cv::Mat mImGrayThr;
+    //     std::cout << "mImGray size:" << mImGray.size() <<", mImGray channels:"<< mImGray.channels() <<std::endl;
+
+    //     cv::cvtColor(mImGray,mImGrayThr,cv::COLOR_GRAY2BGR);
+    //     std::cout << "mImGrayThr size:" << mImGrayThr.size() <<", mImGrayThr channels:"<< mImGrayThr.channels() <<std::endl;
+    //     // cv::imshow("mImGrayThr",mImGrayThr);
+    //     // std::string dummy;
+    //     // std::cout << "Enter to continue..." << std::endl;
+    //     // std::getline(std::cin, dummy);
+
+    //     // mpPointCloudMapping->insertKeyFrame(pKF, mImGrayThr, mImD, mpAtlas->GetAllKeyFrames(), mK, mDistCoef);
+    // }
 }
 
 void Tracking::SearchLocalPoints()

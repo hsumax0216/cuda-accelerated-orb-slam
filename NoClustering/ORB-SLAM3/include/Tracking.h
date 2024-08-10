@@ -38,9 +38,12 @@
 #include "Settings.h"
 
 #include "GeometricCamera.h"
+#include "PointCloudMapping.h"
 
 #include <mutex>
 #include <unordered_set>
+
+class PointCloudMapping;
 
 namespace ORB_SLAM3
 {
@@ -58,7 +61,7 @@ class Tracking
 
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-    Tracking(System* pSys, ORBVocabulary* pVoc, FrameDrawer* pFrameDrawer, MapDrawer* pMapDrawer, Atlas* pAtlas,
+    Tracking(System* pSys, ORBVocabulary* pVoc, FrameDrawer* pFrameDrawer, MapDrawer* pMapDrawer, Atlas* pAtlas, PointCloudMapping* pPointCloud,
              KeyFrameDatabase* pKFDB, const string &strSettingPath, const int sensor, Settings* settings, const string &_nameSeq=std::string());
 
     ~Tracking();
@@ -142,7 +145,9 @@ public:
     Frame mCurrentFrame;
     Frame mLastFrame;
 
+    cv::Mat mImRGB;
     cv::Mat mImGray;
+    cv::Mat mImD;
 
     // Initialization Variables (Monocular)
     std::vector<int> mvIniLastMatches;
@@ -360,6 +365,9 @@ protected:
     Sophus::SE3f mTlr;
 
     void newParameterLoader(Settings* settings);
+
+    // for point cloud viewing
+    PointCloudMapping* mpPointCloudMapping;
 
 #ifdef REGISTER_LOOP
     bool Stop();

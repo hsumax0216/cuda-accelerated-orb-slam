@@ -40,6 +40,10 @@
 #include "ImuTypes.h"
 #include "Settings.h"
 
+#include "PointCloudMapping.h"
+
+class PointCloudMapping;
+
 
 namespace ORB_SLAM3
 {
@@ -197,6 +201,7 @@ public:
 private:
 
     void SaveTimestamp();
+    string GetCurrentTime();
 
     void SaveAtlas(int type);
     bool LoadAtlas(int type);
@@ -234,6 +239,8 @@ private:
     FrameDrawer* mpFrameDrawer;
     MapDrawer* mpMapDrawer;
 
+    PointCloudMapping* mpPointCloudMapping;
+
     // System threads: Local Mapping, Loop Closing, Viewer.
     // The Tracking thread "lives" in the main execution thread that creates the System object.
     std::thread* mptLocalMapping;
@@ -266,6 +273,9 @@ private:
     string mStrSaveAtlasToFile;
 
     string mStrVocabularyFilePath;
+
+    string mStrSaveTimestampCSVFilePath;
+    string mStrCurrentTime;
 
     Settings* settings_;
 };
