@@ -21,6 +21,9 @@ Camera1.p2: 0.0
 Camera.width: 640
 Camera.height: 480
 
+# Camera.newWidth: 453
+# Camera.newHeight: 340
+
 # Camera frames per second 
 Camera.fps: 30
 
@@ -69,3 +72,4 @@ Viewer.ViewpointZ: -1.8
 Viewer.ViewpointF: 500.0
 
 System.SaveTimestampToCSV: "RGBD"
+System.RunPointCloud: 1
