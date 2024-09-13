@@ -50,7 +50,7 @@ class PointCloudMapping
 public:
 
     PointCloudMapping( double resolution_ );
-
+    ~PointCloudMapping();
     // 插入一个keyframe，会更新一次地图
     //void insertKeyFrame(KeyFrame* kf, cv::Mat& color, cv::Mat& depth, const std::vector<KeyFrame*>& KFs, cv::Mat& mK, cv::Mat& mDistCoef);
 

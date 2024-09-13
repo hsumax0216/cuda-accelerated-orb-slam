@@ -31,6 +31,8 @@
 #include <pcl/point_types.h>
 #include <pcl/visualization/pcl_visualizer.h>
 
+#include <unistd.h>
+
 #define FILE_PATH "vslam.pcd"
 
 PointCloudData::PointCloudData(){
@@ -49,18 +51,26 @@ PointCloudMapping::PointCloudMapping(double resolution_)
     globalMap = std::make_shared<pcl::PointCloud<PointT>>();
 
     viewerThread = new thread(&PointCloudMapping::viewer, this );
-    saverThread  = new thread(&PointCloudMapping::saver, this );
+    // saverThread  = new thread(&PointCloudMapping::saver, this );
+}
+
+PointCloudMapping::~PointCloudMapping(){
+    this->shutdown();
 }
 
 void PointCloudMapping::shutdown()
 {
+    std::cout<<"PointCloudMapping::shutdown() BEGIN." << std::endl;
     {
         unique_lock<mutex> lck(shutDownMutex);
         shutDownFlag = true;
         keyFrameUpdated.notify_one();
-        saveCloudUpdated.notify_one();
+        // saveCloudUpdated.notify_one();
     }
+    std::cout<<"PointCloudMapping::shutdown() before join" << std::endl;
     viewerThread->join();
+    std::cout<<"PointCloudMapping::shutdown() END!" << std::endl;
+    // saverThread->join();
 }
 
 /*
@@ -169,6 +179,8 @@ void PointCloudMapping::viewer()
 
 void PointCloudMapping::insertKeyFrame(KeyFrame* kf, cv::Mat& color, cv::Mat& depth, const std::vector<KeyFrame*>& KFs, cv::Mat& mK, cv::Mat& mDistCoef)
 {
+
+    // return;
     //cout<<"receive a keyframe, id = "<<kf->mnId<<endl;
     unique_lock<mutex> lck(keyframeMutex);
 
@@ -250,13 +262,46 @@ void PointCloudMapping::insertKeyFrame(KeyFrame* kf, cv::Mat& color, cv::Mat& de
     mvpKFs = KFs;
 
     keyFrameUpdated.notify_one();
-    saveCloudUpdated.notify_one();
+    // saveCloudUpdated.notify_one();
 }
 
 
 void PointCloudMapping::viewer()
 {
     pcl::visualization::CloudViewer viewer("viewer");
+    // while(1)
+    // {
+    //     // sleep(3);
+    //     // std::cout<< "PointCloudMapping::viewer() loop." << std::endl;
+    //     // {
+    //     //     unique_lock<mutex> lck_shutdown( shutDownMutex );
+    //     //     if (shutDownFlag)
+    //     //     {
+    //     //         break;
+    //     //     }
+    //     // }
+
+    //     // {
+    //     //     unique_lock<mutex> lck_keyframeUpdated( keyFrameUpdateMutex );
+    //     //     keyFrameUpdated.wait( lck_keyframeUpdated );
+    //     // }
+
+    //     // // keyframe is updated
+    //     // size_t N=0;
+    //     // {
+    //     //     unique_lock<mutex> lck( keyframeMutex );
+            
+            
+            
+    //     //     globalMap = std::make_shared<pcl::PointCloud<PointT>>();
+            
+    //     //     pcl::io::savePCDFileBinary(FILE_PATH, *globalMap);   // 只需要加入这一句
+         
+            
+    //     //     viewer.showCloud( globalMap );
+    //     // }
+    // }
+
     while(1)
     {
         {
@@ -296,7 +341,7 @@ void PointCloudMapping::viewer()
 
                 *globalMap += *cloud;
             }
-            //pcl::io::savePCDFileBinary(FILE_PATH, *globalMap);   // 只需要加入这一句
+            pcl::io::savePCDFileBinary(FILE_PATH, *globalMap);   // 只需要加入这一句
             
             //globalMap->width = globalMap->points.size();
             //globalMap->height = 1;
@@ -308,7 +353,7 @@ void PointCloudMapping::viewer()
             //globalMap->swap( *tmp );
             
             viewer.showCloud( globalMap );
-            saveCloudUpdated.notify_one();
+            // saveCloudUpdated.notify_one();
             //cout << "show global map, size=" << globalMap->points.size() << endl;
         }
     }
