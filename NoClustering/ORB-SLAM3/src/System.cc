@@ -84,6 +84,8 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
 
         mStrLoadAtlasFromFile = settings_->atlasLoadFile();
         mStrSaveAtlasToFile = settings_->atlasSaveFile();
+        mStrSaveTimestampCSVFilePath = settings_->timeStampSaveFile();
+        mStrCurrentTime = GetCurrentTime();
 
         cout << (*settings_) << endl;
     }
@@ -196,7 +198,10 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     mpFrameDrawer = new FrameDrawer(mpAtlas);
     mpMapDrawer = new MapDrawer(mpAtlas, strSettingsFile, settings_);
 
-    mpPointCloudMapping = new PointCloudMapping( 0.1 );
+    if (settings_->pointCloudRunState())
+        mpPointCloudMapping = new PointCloudMapping( 0.1 );
+    else
+        mpPointCloudMapping = nullptr;
 
     //Initialize the Tracking thread
     //(it will live in the main thread of execution, the one that called this constructor)
@@ -558,13 +563,17 @@ void System::Shutdown()
         /*usleep(5000);
     }*/
 
+    if (mpPointCloudMapping){
+        mpPointCloudMapping->shutdown();
+    }
+
     if(!mStrSaveAtlasToFile.empty())
     {
         Verbose::PrintMess("Atlas saving to file " + mStrSaveAtlasToFile, Verbose::VERBOSITY_NORMAL);
         SaveAtlas(FileType::BINARY_FILE);
     }
 
-    if(!mTrackFrameTimestamp.empty()){
+    if(!mStrSaveTimestampCSVFilePath.empty()){
         SaveTimestamp();
     }
     /*if(mpViewer)
@@ -1401,7 +1410,8 @@ float System::GetImageScale()
 
 void System::SetTrackTimeStamp(double CFTime,double LFTime = -1.0)
 {
-    mTrackFrameTimestamp.push_back(CFTime);
+    if(!mStrSaveTimestampCSVFilePath.empty())
+        mTrackFrameTimestamp.push_back(CFTime);
     mpTracker->SetTrackTimeStamp(CFTime,LFTime);
 }
 
@@ -1436,7 +1446,7 @@ void System::SaveTimestamp(){
     file << "Timestamp_per_frame," << std::endl;
     for (int i=0;i<mTrackFrameTimestamp.size();i++)
     {
-        file << mTrackFrameTimestamp[i]<<","<< std::endl;
+        file << std::fixed << mTrackFrameTimestamp[i]<<","<< std::endl;
     }
     file.close();    
     cout << "End to write the save Timestamp CSV file " << endl;

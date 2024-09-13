@@ -125,7 +125,8 @@ namespace ORB_SLAM3 {
     }
 
     Settings::Settings(const std::string &configFile, const int& sensor) :
-    bNeedToUndistort_(false), bNeedToRectify_(false), bNeedToResize1_(false), bNeedToResize2_(false) {
+    bNeedToUndistort_(false), bNeedToRectify_(false), bNeedToResize1_(false), bNeedToResize2_(false), sPointCloudRun_(false)
+    {
         sensor_ = sensor;
 
         //Open settings file
@@ -162,6 +163,8 @@ namespace ORB_SLAM3 {
         if(sensor_ == System::RGBD || sensor_ == System::IMU_RGBD){
             readRGBD(fSettings);
             cout << "\t-Loaded RGB-D calibration" << endl;
+            readPointCloudRun(fSettings);
+            cout << "\t-Loaded RGB-D PointCloud Run" << endl;
         }
 
         readORB(fSettings);
@@ -170,6 +173,8 @@ namespace ORB_SLAM3 {
         cout << "\t-Loaded viewer settings" << endl;
         readLoadAndSave(fSettings);
         cout << "\t-Loaded Atlas settings" << endl;
+        readTimeStampSave(fSettings);
+        cout << "\t-Loaded TimeStamp settings" << endl;
         readOtherParameters(fSettings);
         cout << "\t-Loaded misc parameters" << endl;
 
@@ -474,6 +479,18 @@ namespace ORB_SLAM3 {
 
         sLoadFrom_ = readParameter<string>(fSettings,"System.LoadAtlasFromFile",found,false);
         sSaveto_ = readParameter<string>(fSettings,"System.SaveAtlasToFile",found,false);
+    }
+
+    void Settings::readTimeStampSave(cv::FileStorage &fSettings) {
+        bool found;
+
+        sTimeStamp_ = readParameter<string>(fSettings,"System.SaveTimestampToCSV",found,false);
+    }
+
+    void Settings::readPointCloudRun(cv::FileStorage &fSettings) {
+        bool found;
+        int tmp = readParameter<int>(fSettings,"System.RunPointCloud",found,false);
+        sPointCloudRun_ = tmp>0 ? true : false;
     }
 
     void Settings::readOtherParameters(cv::FileStorage& fSettings) {

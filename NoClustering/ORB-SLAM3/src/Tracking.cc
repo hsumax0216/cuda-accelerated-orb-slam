@@ -3337,7 +3337,7 @@ void Tracking::CreateNewKeyFrame()
     mnLastKeyFrameId = mCurrentFrame.mnId;
     mpLastKeyFrame = pKF;
 
-    if(mSensor==System::RGBD || mSensor==System::IMU_RGBD){
+    if((mSensor==System::RGBD || mSensor==System::IMU_RGBD) && mpPointCloudMapping){
         //mpPointCloudMapping->insertKeyFrame(pKF, mImRGB, mImD, mpAtlas->GetAllKeyFrames());
         mpPointCloudMapping->insertKeyFrame(pKF, mImRGB, mImD, mpAtlas->GetAllKeyFrames(), mK, mDistCoef);
     }

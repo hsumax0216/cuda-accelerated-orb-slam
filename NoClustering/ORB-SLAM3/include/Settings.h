@@ -21,7 +21,7 @@
 
 
 // Flag to activate the measurement of time in each process (track,localmap, place recognition).
-//#define REGISTER_TIMES
+#define REGISTER_TIMES
 
 #include "CameraModels/GeometricCamera.h"
 
@@ -115,6 +115,9 @@ namespace ORB_SLAM3 {
         std::string atlasLoadFile() {return sLoadFrom_;}
         std::string atlasSaveFile() {return sSaveto_;}
 
+        std::string timeStampSaveFile() {return sTimeStamp_;}
+        bool pointCloudRunState() {return sPointCloudRun_;}
+
         float thFarPoints() {return thFarPoints_;}
 
         cv::Mat M1l() {return M1l_;}
@@ -153,6 +156,9 @@ namespace ORB_SLAM3 {
         void readViewer(cv::FileStorage& fSettings);
         void readLoadAndSave(cv::FileStorage& fSettings);
         void readOtherParameters(cv::FileStorage& fSettings);
+
+        void readTimeStampSave(cv::FileStorage& fSettings);
+        void readPointCloudRun(cv::FileStorage& fSettings);
 
         void precomputeRectificationMaps();
 
@@ -222,6 +228,9 @@ namespace ORB_SLAM3 {
          * Save & load maps
          */
         std::string sLoadFrom_, sSaveto_;
+
+        std::string sTimeStamp_;
+        bool sPointCloudRun_;
 
         /*
          * Other stuff
