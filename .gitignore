@@ -78,6 +78,13 @@ LBA_Stats.txt
 LocalMapTimeStats.txt
 TrackLocalMapStats.txt
 TrackingTimeStats.txt
+ExecMean_*.txt
+SessionInfo_*.txt
+Results_Euroc_*.txt
+LBA_Stats_*.txt
+LocalMapTimeStats_*.txt
+TrackLocalMapStats_*.txt
+TrackingTimeStats_*.txt
 Table_Euroc
 Table_TUMVI_rooms/
 *.pyc
