@@ -25,6 +25,8 @@
 
 #include<System.h>
 
+#include <stdlib.h>
+
 using namespace std;
 
 void LoadImages(const string &strAssociationFilename, vector<string> &vstrImageFilenamesRGB,
@@ -32,9 +34,9 @@ void LoadImages(const string &strAssociationFilename, vector<string> &vstrImageF
 
 int main(int argc, char **argv)
 {
-    if(argc != 5)
+    if(argc < 5)
     {
-        cerr << endl << "Usage: ./rgbd_tum path_to_vocabulary path_to_settings path_to_sequence path_to_association" << endl;
+        cerr << endl << "Usage: ./rgbd_tum path_to_vocabulary path_to_settings path_to_sequence path_to_association (limit image count)" << endl;
         return 1;
     }
 
@@ -73,10 +75,18 @@ int main(int argc, char **argv)
     cout << "Start processing sequence ..." << endl;
     cout << "Images in the sequence: " << nImages << endl << endl;
 
+    int limitImgCount = -1;
+    if(argc>5)
+        limitImgCount =  atoi(argv[5]);
+
     // Main loop
     cv::Mat imRGB, imD;
     for(int ni=0; ni<nImages; ni++)
     {
+        if(SLAM.isShutDown())
+            break;
+        if(argc>5 && ni>=limitImgCount)
+            break;
         // Read image and depthmap from file
         imRGB = cv::imread(string(argv[3])+"/"+vstrImageFilenamesRGB[ni],cv::IMREAD_UNCHANGED); //,cv::IMREAD_UNCHANGED);
         imD = cv::imread(string(argv[3])+"/"+vstrImageFilenamesD[ni],cv::IMREAD_UNCHANGED); //,cv::IMREAD_UNCHANGED);
@@ -135,8 +145,13 @@ int main(int argc, char **argv)
     }
 
     // Stop all threads
-    SLAM.Shutdown();
-
+    if(!SLAM.isShutDown()){
+        SLAM.Shutdown();
+        // Save camera trajectory
+        cout<<"!SLAM.isShutDown()"<<endl;
+        SLAM.SaveTrajectoryTUM("CameraTrajectory.txt");
+        SLAM.SaveKeyFrameTrajectoryTUM("KeyFrameTrajectory.txt");   
+    }
     // Tracking time statistics
     sort(vTimesTrack.begin(),vTimesTrack.end());
     float totaltime = 0;
@@ -148,9 +163,6 @@ int main(int argc, char **argv)
     cout << "median tracking time: " << vTimesTrack[nImages/2] << endl;
     cout << "mean tracking time: " << totaltime/nImages << endl;
 
-    // Save camera trajectory
-    SLAM.SaveTrajectoryTUM("CameraTrajectory.txt");
-    SLAM.SaveKeyFrameTrajectoryTUM("KeyFrameTrajectory.txt");   
 
     return 0;
 }
